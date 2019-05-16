@@ -1,0 +1,5 @@
+barcode-reader/.gradle/
+barcode-reader/.idea/
+barcode-reader/local.properties
+barcode-reader/app/app.iml
+barcode-reader/app/build/
