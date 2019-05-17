@@ -67,11 +67,6 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
     // permission request codes need to be < 256
     private static final int RC_HANDLE_CAMERA_PERM = 2;
 
-    // constants used to pass extra data in the intent
-    public static final String AutoFocus = "AutoFocus";
-    public static final String UseFlash = "UseFlash";
-    public static final String BarcodeObject = "Barcode";
-
     private CompoundButton autoFocus;
     private CompoundButton useFlash;
     private CameraSource mCameraSource;
@@ -370,7 +365,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
 
         if (best != null) {
             Intent data = new Intent();
-            data.putExtra(BarcodeObject, best);
+            data.putExtra("Barcode", best);
             setResult(CommonStatusCodes.SUCCESS, data);
             finish();
             return true;

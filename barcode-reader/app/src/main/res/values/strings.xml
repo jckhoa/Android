@@ -5,8 +5,8 @@
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission.  The application will now exit.</string>
     <string name="low_storage_error">Face detector dependencies cannot be downloaded due to low device storage</string>
     <string name="title_activity_main">Barcode Reader Sample</string>
-    <string name="barcode_header">Click &quot;Read Barcode&quot; to read a barcode</string>
-    <string name="read_barcode">Read Barcode</string>
+    <string name="scan">Scanner</string>
+    <string name="restart">Redemarrer</string>
     <string name="auto_focus">Auto Focus</string>
     <string name="use_flash">Use Flash</string>
     <string name="barcode_success">Barcode read successfully</string>
@@ -16,4 +16,5 @@
     <string name="accept_button">Accept</string>
     <string name="rescan_button">Rescan</string>
     <string name="cancel_button">Cancel</string>
+    <string name="main_instruction">Scanner: scanner un code barre &#10; Redemarrer: redemarrer</string>
 </resources>

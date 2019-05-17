@@ -22,8 +22,6 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
 import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -57,7 +55,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
         statusMessage = (TextView)findViewById(R.id.status_message);
         itemTable = (TableLayout)findViewById(R.id.item_table);
 
-        findViewById(R.id.read_barcode).setOnClickListener(this);
+        findViewById(R.id.button_scan).setOnClickListener(this);
+
+        createTableHeader();
+    }
+
+    void createTableHeader() {
 
         //create table header
         TableRow tr_head = new TableRow(this);
@@ -74,16 +77,47 @@ public class MainActivity extends Activity implements View.OnClickListener {
         tr_head.addView(code);// add the column to the table row here
 
         TextView qty = new TextView(this);
-        qty.setText("Wt(Kg.)"); // set the text for the header
+        qty.setText("Quantite"); // set the text for the header
         qty.setTextColor(Color.WHITE); // set the color
         qty.setPadding(5, 5, 5, 5); // set the padding (if required)
         tr_head.addView(qty); // add the column to the table row here
 
         itemTable.addView(tr_head, new TableLayout.LayoutParams(
-                        TableLayout.LayoutParams.FILL_PARENT,
+                TableLayout.LayoutParams.FILL_PARENT,
                 TableLayout.LayoutParams.WRAP_CONTENT));
     }
 
+    void addTableItem(String barcode) {
+        if (items.containsKey(barcode)) {
+            TableRow row = items.get(barcode);
+            TextView qty = (TextView) row.getChildAt(1);
+            Integer value = Integer.parseInt(qty.getText().toString());
+            qty.setText( String.valueOf(value + 1));
+        }
+        else{
+            TableRow tr = new TableRow(this);
+            tr.setLayoutParams(new TableRow.LayoutParams(
+                    TableRow.LayoutParams.FILL_PARENT,
+                    TableRow.LayoutParams.WRAP_CONTENT));
+
+            TextView code = new TextView(this);
+            code.setText(barcode);
+            code.setPadding(2, 0, 5, 0);
+            code.setTextColor(Color.WHITE);
+            tr.addView(code, 0);
+            TextView qty = new TextView(this);
+            qty.setText("1");
+            qty.setTextColor(Color.WHITE);
+            tr.addView(qty, 1);
+
+            // finally add this to the table row
+            itemTable.addView(tr, new TableLayout.LayoutParams(
+                    TableLayout.LayoutParams.FILL_PARENT,
+                    TableLayout.LayoutParams.WRAP_CONTENT));
+
+            items.put(barcode, tr);
+        }
+    }
     /**
      * Called when a view has been clicked.
      *
@@ -91,11 +125,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
      */
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.read_barcode) {
-            // launch barcode activity.
-            Intent intent = new Intent(this, BarcodeCaptureActivity.class);
-            startActivityForResult(intent, RC_BARCODE_CAPTURE);
+        switch (v.getId()) {
+            case R.id.button_scan:
+                // launch barcode activity.
+                Intent intent = new Intent(this, BarcodeCaptureActivity.class);
+                startActivityForResult(intent, RC_BARCODE_CAPTURE);
+                break;
+            case R.id.button_restart:
+                itemTable.removeViews(1, itemTable.getChildCount()-1);
+                items.clear();
+                break;
         }
+
+
 
     }
 
@@ -129,36 +171,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     Barcode barcode = data.getParcelableExtra("BARCODE");
                     statusMessage.setText(R.string.barcode_success);
                     Log.d(TAG, "Barcode read: " + barcode.displayValue);
-
-                    if (items.containsKey(barcode.displayValue)) {
-                        TableRow row = items.get(barcode.displayValue);
-                        TextView qty = (TextView) row.getChildAt(1);
-                        Integer value = Integer.parseInt(qty.getText().toString());
-                        qty.setText( String.valueOf(value + 1));
-                    }
-                    else{
-                        TableRow tr = new TableRow(this);
-                        tr.setLayoutParams(new TableRow.LayoutParams(
-                                TableRow.LayoutParams.FILL_PARENT,
-                                TableRow.LayoutParams.WRAP_CONTENT));
-
-                        TextView code = new TextView(this);
-                        code.setText(barcode.displayValue);
-                        code.setPadding(2, 0, 5, 0);
-                        code.setTextColor(Color.WHITE);
-                        tr.addView(code, 0);
-                        TextView qty = new TextView(this);
-                        qty.setText("1");
-                        qty.setTextColor(Color.WHITE);
-                        tr.addView(qty, 1);
-
-                        // finally add this to the table row
-                        itemTable.addView(tr, new TableLayout.LayoutParams(
-                                TableLayout.LayoutParams.FILL_PARENT,
-                                TableLayout.LayoutParams.WRAP_CONTENT));
-
-                        items.put(barcode.displayValue, tr);
-                    }
+                    addTableItem(barcode.displayValue);
                 } else {
                     statusMessage.setText(R.string.barcode_failure);
                     Log.d(TAG, "No barcode captured, intent data is null");

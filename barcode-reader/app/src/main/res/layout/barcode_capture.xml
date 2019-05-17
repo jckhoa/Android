@@ -33,9 +33,9 @@
         android:id="@+id/auto_focus"
         android:layout_width="100dp"
         android:layout_height="match_parent"
-        android:checked="false"
-        android:text="@string/auto_focus"
-        android:onClick="onCheckBoxClicked"/>
+        android:checked="true"
+        android:onClick="onCheckBoxClicked"
+        android:text="@string/auto_focus" />
 
     <CheckBox
         android:id="@+id/use_flash"
