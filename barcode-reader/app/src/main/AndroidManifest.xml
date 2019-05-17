@@ -16,7 +16,6 @@
         android:label="MultiTrackerApp"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat">
-        <activity android:name=".ProductInfo"></activity>
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -36,7 +35,12 @@
         </activity>
         <activity
             android:name=".BarcodeCaptureActivity"
-            android:label="Read Barcode" />
+            android:label="Read Barcode"
+            android:parentActivityName=".MainActivity"/>
+        <activity
+            android:name=".ProductInfo"
+            android:parentActivityName=".BarcodeCaptureActivity"></activity>
+
     </application>
 
 </manifest>

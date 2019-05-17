@@ -67,6 +67,8 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
     // permission request codes need to be < 256
     private static final int RC_HANDLE_CAMERA_PERM = 2;
 
+    private static final int RC_PRODUCT_SEARCH = 9002;
+
     private CompoundButton autoFocus;
     private CompoundButton useFlash;
     private CameraSource mCameraSource;
@@ -444,6 +446,23 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
 
         Intent intent = new Intent(this, ProductInfo.class);
         intent.putExtra("BARCODE", barcode);
-        startActivity(intent);
+        startActivityForResult(intent, RC_PRODUCT_SEARCH);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RC_PRODUCT_SEARCH) {
+            if (resultCode == CommonStatusCodes.SUCCESS_CACHE) {
+                Log.d(TAG, "Barcode obtained");
+                setResult(CommonStatusCodes.SUCCESS, data);
+                finish();
+            }
+            else if (resultCode == CommonStatusCodes.CANCELED) {
+                //finish();
+            }
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 }

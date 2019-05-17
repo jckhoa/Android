@@ -13,6 +13,7 @@
         android:layout_marginBottom="200dp"
         android:isScrollContainer="true"
 
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -32,7 +33,7 @@
     <EditText
         android:id="@+id/productName"
         android:layout_width="250dp"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="12dp"
@@ -49,12 +50,13 @@
         tools:text="Product Name" />
 
     <Button
-        android:id="@+id/Accept"
+        android:id="@+id/confirmProduct"
         android:layout_width="126dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:text="@string/accept_button"
+        android:onClick="onClick"
+        android:text="@string/confirm_product"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/cancelProduct"
         app:layout_constraintHorizontal_bias="0.5"
@@ -66,7 +68,8 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
-        android:text="@string/rescan_button"
+        android:onClick="onClick"
+        android:text="@string/rescan_product"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -76,11 +79,12 @@
         android:id="@+id/cancelProduct"
         android:layout_width="126dp"
         android:layout_height="wrap_content"
-        android:text="@string/cancel_button"
+        android:onClick="onClick"
+        android:text="@string/cancel_product"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/rescanProduct"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/Accept" />
+        app:layout_constraintStart_toEndOf="@+id/confirmProduct" />
 
 
 

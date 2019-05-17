@@ -1,23 +1,22 @@
 package com.google.android.gms.samples.vision.barcodereader;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Pair;
+import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
 
@@ -29,6 +28,7 @@ public class ProductInfo extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private WebView myWebview;
     private MyJavaScriptInterface jsInterface;
+    private String barcodeValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +36,7 @@ public class ProductInfo extends AppCompatActivity {
         setContentView(R.layout.activity_product_info);
 
         Barcode barcode = getIntent().getParcelableExtra("BARCODE");
-
+        barcodeValue = barcode.displayValue;
         productName = (TextView) findViewById(R.id.productName);
 
 
@@ -60,33 +60,50 @@ public class ProductInfo extends AppCompatActivity {
 
         //myWebview.loadUrl(url);
 
+
         /*
         String barcodeDatabaseUrl = "https://barcodesdatabase.org/barcode/9421021461303";
-        ArrayList<Pair<Character, Integer>> barcodeDatabaseInstruction = new ArrayList<Pair<Character, Integer>>();
-        barcodeDatabaseInstruction.add(new Pair<Character, Integer>('l',1));
-        WebScraper barcodeDatabaseScraper = new WebScraper("Product", 0, barcodeDatabaseInstruction);
+        ArrayList<WebScraperRequest> barcodeDatabaseInstruction = new ArrayList<>();
+        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.TEXT,"Product", 0));
+        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.SIBLING,"", 0));
+        WebScraper barcodeDatabaseScraper = new WebScraper(barcodeDatabaseInstruction);
         scrapeWeb(barcodeDatabaseUrl, barcodeDatabaseScraper);
         */
+
+
         String amazonUrl = "https://www.amazon.fr/s?k=4007371062459";
-        ArrayList<Pair<Character, String>> amazonInstruction = new ArrayList<Pair<Character, String>>();
-        //amazonInstruction.add(new Pair<Character, Integer>('l',0));
-        amazonInstruction.add(new Pair<>('c',"span[data-component-type=s-search-results]"));
-        amazonInstruction.add(new Pair<>('c',"div[class^=s-result-list]"));
-        amazonInstruction.add(new Pair<>('c',"a[href*=4007371062459]"));
-       // amazonInstruction.add(new Pair<>('c',"span"));
+        ArrayList<WebScraperRequest> amazonInstruction = new ArrayList<>();
+        amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "span[data-component-type=s-search-results]", 0));
+        amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "a[href*=4007371062459]", 2));
+        amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "span", 0));
         WebScraper amazonScraper = new WebScraper(amazonInstruction);
         scrapeWeb(amazonUrl, amazonScraper);
+
         //new Content().execute();
     }
 
+    public void onClick(View view) {
+        Intent intent = new Intent(this, BarcodeCaptureActivity.class);
+        switch (view.getId()) {
+            case R.id.confirmProduct:
+                intent.putExtra("BARCODE", barcodeValue);
+                intent.putExtra("PRODUCT_NAME", productName.getText().toString());
+                setResult(CommonStatusCodes.SUCCESS_CACHE, intent);
+                break;
+            case R.id.cancelProduct:
+                setResult(CommonStatusCodes.CANCELED, intent);
+                break;
+            case R.id.rescanProduct:
+                setResult(CommonStatusCodes.ERROR, intent);
+                break;
+        }
+        finish();
+    }
     public void scrapeWeb(String url, WebScraper scraper) {
         jsInterface.setWebScraper(scraper);
         myWebview.loadUrl(url);
     }
 
-    public void scrapeWebSelect(String url, String searchText, int level) {
-
-    }
     class MyJavaScriptInterface {
         private Context ctx;
         private WebScraper scraper;
@@ -115,12 +132,28 @@ public class ProductInfo extends AppCompatActivity {
 
     }
 
-    class WebScraper {
-        ArrayList<Pair<Character, String>> instruction;
-        String result;
+    public enum ScraperCommand {
+        CSS, TEXT, SIBLING
+    }
 
-        WebScraper(ArrayList<Pair<Character, String>> instruction) {
-            this.instruction = instruction;
+    class WebScraperRequest {
+        public ScraperCommand command;
+        public String request;
+        public int index;
+
+        public WebScraperRequest(ScraperCommand command, String request, int index) {
+            this.command = command;
+            this.request = request;
+            this.index = index;
+        }
+    }
+
+    class WebScraper {
+        private ArrayList<WebScraperRequest> requests;
+        private String result;
+
+        WebScraper(ArrayList<WebScraperRequest> requests) {
+            this.requests = requests;
         }
 
         public String getResult() {
@@ -128,40 +161,30 @@ public class ProductInfo extends AppCompatActivity {
         }
 
         public void scrape(String html) {
-
             Element elm = search(html);
-            if (elm == null) {
-                result = "non-trouvable";
-            }
-            else {
-                //result = elm.text();
-                result = elm.child(0).tagName();
-            }
+            result = (elm == null ? "" : elm.text());
         }
 
         private Element search(String html){
             Element elm = Jsoup.parse(html).body();
-            if (elm == null) return elm;
+            if (elm == null) return null;
 
-            for (Pair<Character, String> item: instruction) {
-                if (item.first == 'd') {
-                    Integer depth = Integer.valueOf(item.second);
-                    // go down to children
-                    for (Integer i = 0; i < depth; ++i) {
-                        elm = elm.child(0);
-                        if (elm == null) return elm;
-                    }
+            for (WebScraperRequest request: requests) {
+                Elements elements = null;
+                switch (request.command) {
+                    case CSS:
+                        elements = elm.select(request.request);
+                        break;
+                    case TEXT:
+                        elements = elm.getElementsContainingOwnText(request.request);
+                        break;
+                    case SIBLING:
+                        elements = elm.siblingElements();
                 }
-                else if (item.first == 'l'){
-                    Integer siblings = Integer.valueOf(item.second);
-                    for (Integer i = 0; i < siblings; i++ ) {
-                        elm = elm.nextElementSibling();
-                        if (elm == null) return elm;
-                    }
-                }
-                else if (item.first == 'c') { //css
-                    elm = elm.select(item.second).first();
-                    if (elm == null) return elm;
+                if (elements.isEmpty()) return null;
+                else {
+                    elm = elements.eq(request.index).first();
+                    if (elm == null) return null;
                 }
             }
             return elm;

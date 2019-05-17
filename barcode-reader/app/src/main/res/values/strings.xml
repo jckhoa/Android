@@ -13,8 +13,8 @@
     <string name="barcode_failure">No barcode captured</string>
     <string name="barcode_error">"Error reading barcode: %1$s"</string>
     <string name="product_name">Product Name</string>
-    <string name="accept_button">Accept</string>
-    <string name="rescan_button">Rescan</string>
-    <string name="cancel_button">Cancel</string>
+    <string name="confirm_product">Confirmer</string>
+    <string name="rescan_product">Rescanner</string>
+    <string name="cancel_product">Annuler</string>
     <string name="main_instruction">Scanner: scanner un code barre &#10; Redemarrer: redemarrer</string>
 </resources>
