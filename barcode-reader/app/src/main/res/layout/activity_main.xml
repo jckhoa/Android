@@ -21,18 +21,6 @@
         tools:layout_editor_absoluteX="16dp" />
 
 
-    <TableLayout
-        android:id="@+id/item_table"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/button_scan"
-        app:layout_constraintTop_toBottomOf="@+id/status_message"
-        tools:layout_editor_absoluteX="16dp">
-
-    </TableLayout>
-
     <Button
         android:id="@+id/button_scan"
         android:layout_width="wrap_content"
@@ -58,5 +46,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/button_scan" />
+
+    <WebView
+        android:id="@+id/report_table"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:isScrollContainer="true"
+
+        app:layout_constraintBottom_toTopOf="@+id/button_scan"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/status_message" />
 
 </android.support.constraint.ConstraintLayout>

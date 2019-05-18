@@ -20,8 +20,10 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -29,7 +31,9 @@ import android.widget.TextView;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Main activity demonstrating how to pass extra parameters to an activity that
@@ -40,12 +44,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
     // use a compound button so either checkbox or switch widgets work.
 
     private TextView statusMessage;
-    private TableLayout itemTable;
+    private WebView reportTable;
 
     private static final int RC_BARCODE_CAPTURE = 9001;
     private static final String TAG = "BarcodeMain";
 
-    HashMap<String, TableRow> items = new HashMap<>();
+    private MyTable mytable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,71 +57,30 @@ public class MainActivity extends Activity implements View.OnClickListener {
         setContentView(R.layout.activity_main);
 
         statusMessage = (TextView)findViewById(R.id.status_message);
-        itemTable = (TableLayout)findViewById(R.id.item_table);
+        reportTable = (WebView) findViewById(R.id.report_table);
+        reportTable.getSettings().setJavaScriptEnabled(true);
+        reportTable.getSettings().setLoadWithOverviewMode(true);
+        reportTable.getSettings().setBuiltInZoomControls(true);
 
-        findViewById(R.id.button_scan).setOnClickListener(this);
-
-        createTableHeader();
+        mytable = new MyTable();
+        if (savedInstanceState == null)
+            updateReportTable();
     }
 
-    void createTableHeader() {
-
-        //create table header
-        TableRow tr_head = new TableRow(this);
-        tr_head.setBackgroundColor(Color.GRAY);
-        tr_head.setLayoutParams(new TableRow.LayoutParams(
-                TableRow.LayoutParams.FILL_PARENT,
-                TableRow.LayoutParams.WRAP_CONTENT));
-
-        // add two data sections to the table row
-        TextView code = new TextView(this);
-        code.setText("Code");
-        code.setTextColor(Color.WHITE);
-        code.setPadding(5, 5, 5, 5);
-        tr_head.addView(code);// add the column to the table row here
-
-        TextView qty = new TextView(this);
-        qty.setText("Quantite"); // set the text for the header
-        qty.setTextColor(Color.WHITE); // set the color
-        qty.setPadding(5, 5, 5, 5); // set the padding (if required)
-        tr_head.addView(qty); // add the column to the table row here
-
-        itemTable.addView(tr_head, new TableLayout.LayoutParams(
-                TableLayout.LayoutParams.FILL_PARENT,
-                TableLayout.LayoutParams.WRAP_CONTENT));
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        reportTable.saveState(outState);
     }
 
-    void addTableItem(String barcode) {
-        if (items.containsKey(barcode)) {
-            TableRow row = items.get(barcode);
-            TextView qty = (TextView) row.getChildAt(1);
-            Integer value = Integer.parseInt(qty.getText().toString());
-            qty.setText( String.valueOf(value + 1));
-        }
-        else{
-            TableRow tr = new TableRow(this);
-            tr.setLayoutParams(new TableRow.LayoutParams(
-                    TableRow.LayoutParams.FILL_PARENT,
-                    TableRow.LayoutParams.WRAP_CONTENT));
-
-            TextView code = new TextView(this);
-            code.setText(barcode);
-            code.setPadding(2, 0, 5, 0);
-            code.setTextColor(Color.WHITE);
-            tr.addView(code, 0);
-            TextView qty = new TextView(this);
-            qty.setText("1");
-            qty.setTextColor(Color.WHITE);
-            tr.addView(qty, 1);
-
-            // finally add this to the table row
-            itemTable.addView(tr, new TableLayout.LayoutParams(
-                    TableLayout.LayoutParams.FILL_PARENT,
-                    TableLayout.LayoutParams.WRAP_CONTENT));
-
-            items.put(barcode, tr);
-        }
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        super.onRestoreInstanceState(savedInstanceState);
+        reportTable.restoreState(savedInstanceState);
     }
+
     /**
      * Called when a view has been clicked.
      *
@@ -129,18 +92,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.button_scan:
                 // launch barcode activity.
                 Intent intent = new Intent(this, BarcodeCaptureActivity.class);
+                intent.putExtra("TABLE", mytable);
                 startActivityForResult(intent, RC_BARCODE_CAPTURE);
                 break;
             case R.id.button_restart:
-                itemTable.removeViews(1, itemTable.getChildCount()-1);
-                items.clear();
+                mytable.clearItems();
+                updateReportTable();
                 break;
         }
-
-
-
     }
 
+    public void updateReportTable() {
+        reportTable.loadDataWithBaseURL("", mytable.genHtmlTable(),"text/html", "UTF-8","");
+        mytable.genHtmlTable();
+    }
     /**
      * Called when an activity you launched exits, giving you the requestCode
      * you started it with, the resultCode it returned, and any additional
@@ -170,9 +135,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 if (data != null) {
                     String barcode = data.getStringExtra("BARCODE");
                     String productName = data.getStringExtra("PRODUCT_NAME");
-                    statusMessage.setText(productName);
                     Log.d(TAG, "Barcode read: " + barcode);
-                    addTableItem(barcode);
+                    mytable.addItem(barcode, productName);
+                    updateReportTable();
                 } else {
                     statusMessage.setText(R.string.barcode_failure);
                     Log.d(TAG, "No barcode captured, intent data is null");
@@ -186,4 +151,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
+
+
 }

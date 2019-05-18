@@ -19,6 +19,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class ProductInfo extends AppCompatActivity {
@@ -29,11 +30,14 @@ public class ProductInfo extends AppCompatActivity {
     private WebView myWebview;
     private MyJavaScriptInterface jsInterface;
     private String barcodeValue;
+    private MyTable myTable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_info);
+
+        myTable = (MyTable) getIntent().getExtras().getSerializable("TABLE");
 
         Barcode barcode = getIntent().getParcelableExtra("BARCODE");
         barcodeValue = barcode.displayValue;
@@ -70,6 +74,12 @@ public class ProductInfo extends AppCompatActivity {
         scrapeWeb(barcodeDatabaseUrl, barcodeDatabaseScraper);
         */
 
+        HashMap<String, MyTable.MyTableData> data = myTable.getTableData();
+        MyTable.MyTableData item = data.get(barcodeValue);
+        if (item != null) {
+            productName.setText(item.getValue());
+            return;
+        }
 
         String amazonUrl = "https://www.amazon.fr/s?k=4007371062459";
         ArrayList<WebScraperRequest> amazonInstruction = new ArrayList<>();

@@ -75,6 +75,8 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
     private CameraSourcePreview mPreview;
     private GraphicOverlay<BarcodeGraphic> mGraphicOverlay;
 
+    private MyTable myTable;
+
     // helper objects for detecting taps and pinches.
     private ScaleGestureDetector scaleGestureDetector;
     private GestureDetector gestureDetector;
@@ -91,6 +93,8 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
         mGraphicOverlay = (GraphicOverlay<BarcodeGraphic>) findViewById(R.id.graphicOverlay);
         autoFocus = (CompoundButton) findViewById(R.id.auto_focus);
         useFlash = (CompoundButton) findViewById(R.id.use_flash);
+
+        myTable = (MyTable) getIntent().getExtras().getSerializable("TABLE");
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -446,6 +450,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
 
         Intent intent = new Intent(this, ProductInfo.class);
         intent.putExtra("BARCODE", barcode);
+        intent.putExtra("TABLE", myTable);
         startActivityForResult(intent, RC_PRODUCT_SEARCH);
     }
 
@@ -458,7 +463,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
                 finish();
             }
             else if (resultCode == CommonStatusCodes.CANCELED) {
-                //finish();
+                finish();
             }
         }
         else {
