@@ -26,6 +26,7 @@ public class ProductInfo extends AppCompatActivity {
     private String title;
     private String url;
     private TextView productName;
+    private TextView barcodeTextView;
     private ProgressDialog progressDialog;
     private WebView myWebview;
     private MyJavaScriptInterface jsInterface;
@@ -41,7 +42,10 @@ public class ProductInfo extends AppCompatActivity {
 
         Barcode barcode = getIntent().getParcelableExtra("BARCODE");
         barcodeValue = barcode.displayValue;
-        productName = (TextView) findViewById(R.id.productName);
+        barcodeTextView = findViewById(R.id.barcode);
+        barcodeTextView.setText(barcode.displayValue);
+
+        productName = findViewById(R.id.productName);
 
 
 
@@ -69,7 +73,7 @@ public class ProductInfo extends AppCompatActivity {
         String barcodeDatabaseUrl = "https://barcodesdatabase.org/barcode/9421021461303";
         ArrayList<WebScraperRequest> barcodeDatabaseInstruction = new ArrayList<>();
         barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.TEXT,"Product", 0));
-        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.SIBLING,"", 0));
+        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.SIBLING,"", 1));
         WebScraper barcodeDatabaseScraper = new WebScraper(barcodeDatabaseInstruction);
         scrapeWeb(barcodeDatabaseUrl, barcodeDatabaseScraper);
         */
@@ -87,6 +91,13 @@ public class ProductInfo extends AppCompatActivity {
         amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "a[href*=4007371062459]", 2));
         amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "span", 0));
         WebScraper amazonScraper = new WebScraper(amazonInstruction);
+
+        progressDialog = new ProgressDialog(ProductInfo.this);
+        progressDialog.setTitle("Connect for product information");
+        progressDialog.setMessage("Obtaining product information...");
+        progressDialog.setIndeterminate(false);
+        progressDialog.show();
+
         scrapeWeb(amazonUrl, amazonScraper);
 
         //new Content().execute();
@@ -135,6 +146,7 @@ public class ProductInfo extends AppCompatActivity {
                     //new AlertDialog.Builder(ctx).setTitle("HTML").setMessage(html).setPositiveButton(android.R.string.ok, null).setCancelable(false).create().show();
                     scraper.scrape(html);
                     productName.setText(scraper.getResult());
+                    progressDialog.dismiss();
                 }
             });
 
