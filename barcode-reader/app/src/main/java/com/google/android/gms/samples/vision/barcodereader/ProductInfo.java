@@ -18,6 +18,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -69,14 +70,6 @@ public class ProductInfo extends AppCompatActivity {
         //myWebview.loadUrl(url);
 
 
-        /*
-        String barcodeDatabaseUrl = "https://barcodesdatabase.org/barcode/9421021461303";
-        ArrayList<WebScraperRequest> barcodeDatabaseInstruction = new ArrayList<>();
-        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.TEXT,"Product", 0));
-        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.SIBLING,"", 1));
-        WebScraper barcodeDatabaseScraper = new WebScraper(barcodeDatabaseInstruction);
-        scrapeWeb(barcodeDatabaseUrl, barcodeDatabaseScraper);
-        */
 
         HashMap<String, MyTable.MyTableData> data = myTable.getTableData();
         MyTable.MyTableData item = data.get(barcodeValue);
@@ -85,20 +78,29 @@ public class ProductInfo extends AppCompatActivity {
             return;
         }
 
+
+        String barcodeDatabaseUrl = "https://barcodesdatabase.org/barcode/9421021461303";
+        //String barcodeDatabaseUrl = "https://barcodesdatabase.org/barcode/4007371062459";
+        ArrayList<WebScraperRequest> barcodeDatabaseInstruction = new ArrayList<>();
+        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.TEXT,"Product", 0));
+        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.SIBLING,"", 0));
+        WebScraper barcodeDatabaseScraper = new WebScraper(barcodeDatabaseInstruction, barcodeDatabaseUrl);
+
         String amazonUrl = "https://www.amazon.fr/s?k=4007371062459";
         ArrayList<WebScraperRequest> amazonInstruction = new ArrayList<>();
         amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "span[data-component-type=s-search-results]", 0));
         amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "a[href*=4007371062459]", 2));
         amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "span", 0));
-        WebScraper amazonScraper = new WebScraper(amazonInstruction);
+        WebScraper amazonScraper = new WebScraper(amazonInstruction, amazonUrl);
 
-        progressDialog = new ProgressDialog(ProductInfo.this);
-        progressDialog.setTitle("Connect for product information");
-        progressDialog.setMessage("Obtaining product information...");
-        progressDialog.setIndeterminate(false);
-        progressDialog.show();
 
-        scrapeWeb(amazonUrl, amazonScraper);
+        ArrayList<WebScraper> scrapers = new ArrayList<>();
+        scrapers.add(barcodeDatabaseScraper);
+        scrapers.add(amazonScraper);
+
+
+
+        scrapeWeb(scrapers);
 
         //new Content().execute();
     }
@@ -120,20 +122,29 @@ public class ProductInfo extends AppCompatActivity {
         }
         finish();
     }
-    public void scrapeWeb(String url, WebScraper scraper) {
-        jsInterface.setWebScraper(scraper);
-        myWebview.loadUrl(url);
+
+    public void scrapeWeb(ArrayList<WebScraper> scrapers) {
+
+        progressDialog = new ProgressDialog(ProductInfo.this);
+        progressDialog.setTitle("Connect for product information");
+        progressDialog.setMessage("Obtaining product information...");
+        progressDialog.setIndeterminate(false);
+        progressDialog.show();
+
+        jsInterface.setWebScraper(scrapers);
+        myWebview.loadUrl(scrapers.get(0).getUrl());
     }
 
     class MyJavaScriptInterface {
         private Context ctx;
-        private WebScraper scraper;
+        private ArrayList<WebScraper> scraper;
+        private int index = 0;
 
         MyJavaScriptInterface(Context ctx) {
             this.ctx = ctx;
         }
 
-        public void setWebScraper(WebScraper scraper) {
+        public void setWebScraper(ArrayList<WebScraper> scraper) {
             this.scraper = scraper;
         }
 
@@ -144,9 +155,24 @@ public class ProductInfo extends AppCompatActivity {
                 @Override
                 public void run() {
                     //new AlertDialog.Builder(ctx).setTitle("HTML").setMessage(html).setPositiveButton(android.R.string.ok, null).setCancelable(false).create().show();
-                    scraper.scrape(html);
-                    productName.setText(scraper.getResult());
-                    progressDialog.dismiss();
+                    if (index >= scraper.size()) {
+                        progressDialog.dismiss();
+                        return;
+                    }
+                    scraper.get(index).scrape(html);
+                    if (scraper.get(index).getResult() != null) {
+                        productName.setText(scraper.get(index).getResult());
+                        progressDialog.dismiss();
+                        index = 0;
+                    } else {
+                        ++index;
+                        if (index < scraper.size())
+                            myWebview.loadUrl(scraper.get(index).getUrl());
+                        else {
+                            progressDialog.dismiss();
+                            index = 0;
+                        }
+                    }
                 }
             });
 
@@ -173,18 +199,22 @@ public class ProductInfo extends AppCompatActivity {
     class WebScraper {
         private ArrayList<WebScraperRequest> requests;
         private String result;
+        private String url;
 
-        WebScraper(ArrayList<WebScraperRequest> requests) {
+        WebScraper(ArrayList<WebScraperRequest> requests, String url) {
             this.requests = requests;
+            this.url = url;
         }
 
         public String getResult() {
             return result;
         }
 
+        public String getUrl() { return url; }
+
         public void scrape(String html) {
             Element elm = search(html);
-            result = (elm == null ? "" : elm.text());
+            result = (elm == null ? null : elm.text());
         }
 
         private Element search(String html){
