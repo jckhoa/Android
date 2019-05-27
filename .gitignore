@@ -3,3 +3,6 @@ barcode-reader/.idea/
 barcode-reader/local.properties
 barcode-reader/app/app.iml
 barcode-reader/app/build/
+WebScraper/.idea/
+WebScraper/app/.gitignore
+WebScraper/.gitignore
