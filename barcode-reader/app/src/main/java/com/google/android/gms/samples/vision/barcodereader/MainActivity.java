@@ -103,8 +103,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     public void updateReportTable() {
-        reportTable.loadDataWithBaseURL("", mytable.genHtmlTable(),"text/html", "UTF-8","");
-        mytable.genHtmlTable();
+        if (mytable.getTableData().isEmpty()) {
+            reportTable.setVisibility(View.INVISIBLE);
+        } else {
+            reportTable.setVisibility(View.VISIBLE);
+            reportTable.loadDataWithBaseURL("", mytable.genHtmlTable(),"text/html", "UTF-8","");
+        }
+
     }
     /**
      * Called when an activity you launched exits, giving you the requestCode
@@ -139,8 +144,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     mytable.addItem(barcode, productName);
                     updateReportTable();
                 } else {
-                    statusMessage.setText(R.string.barcode_failure);
-                    Log.d(TAG, "No barcode captured, intent data is null");
+                    statusMessage.setText("Barre code non-capture");
                 }
             } else {
                 statusMessage.setText(String.format(getString(R.string.barcode_error),

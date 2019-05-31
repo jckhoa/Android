@@ -29,6 +29,7 @@ public class MyTable implements Serializable {
         tabData.clear();
     }
     public String genHtmlTable() {
+
         String head = "<!DOCTYPE html><html><head></head><body>";
         String tail = "</body></html>";
 

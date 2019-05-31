@@ -14,11 +14,6 @@ import android.widget.TextView;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -54,16 +49,15 @@ public class ProductInfo extends AppCompatActivity {
         myWebview.getSettings().setLoadWithOverviewMode(true);
         myWebview.getSettings().setBuiltInZoomControls(true);
         myWebview.getSettings().setJavaScriptEnabled(true);
+        myWebview.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0");
 
         jsInterface = new MyJavaScriptInterface(this);
         myWebview.addJavascriptInterface(jsInterface, "HtmlViewer");
-        //myWebview.addJavascriptInterface(new MyJavaScriptInterface(this), "HTMLOUT");
 
         myWebview.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
                 view.loadUrl("javascript:window.HtmlViewer.showHTML('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
-                //myWebview.loadUrl("javascript:window.HTMLOUT.processHTML('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
             }
         });
 
@@ -79,26 +73,39 @@ public class ProductInfo extends AppCompatActivity {
         }
 
 
-        String barcodeDatabaseUrl = "https://barcodesdatabase.org/barcode/9421021461303";
-        //String barcodeDatabaseUrl = "https://barcodesdatabase.org/barcode/4007371062459";
-        ArrayList<WebScraperRequest> barcodeDatabaseInstruction = new ArrayList<>();
-        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.TEXT,"Product", 0));
-        barcodeDatabaseInstruction.add(new WebScraperRequest(ScraperCommand.SIBLING,"", 0));
-        WebScraper barcodeDatabaseScraper = new WebScraper(barcodeDatabaseInstruction, barcodeDatabaseUrl);
+        //WebScraper bcdScraper = new WebScraper("https://barcodesdatabase.org/barcode/9421021461303");
+        WebScraper bcdScraper = new WebScraper("https://barcodesdatabase.org/barcode/" + barcodeValue);
+        bcdScraper.addScrapedItem("Owner", "table[class$=registration-table] tr:eq(1) td:eq(1)");
+        bcdScraper.addScrapedItem("ProductName","table[class$=registration-table] tr:eq(2) td:eq(1)" );
 
-        String amazonUrl = "https://www.amazon.fr/s?k=4007371062459";
-        ArrayList<WebScraperRequest> amazonInstruction = new ArrayList<>();
-        amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "span[data-component-type=s-search-results]", 0));
-        amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "a[href*=4007371062459]", 2));
-        amazonInstruction.add(new WebScraperRequest(ScraperCommand.CSS, "span", 0));
-        WebScraper amazonScraper = new WebScraper(amazonInstruction, amazonUrl);
+        //WebScraper  fnacScraper = new WebScraper("https://www.fnac.com/SearchResult/ResultList.aspx?Search=4713883543514");
+        WebScraper  fnacScraper = new WebScraper("https://www.fnac.com/SearchResult/ResultList.aspx?Search=" + barcodeValue);
+        fnacScraper.addScrapedItem("ProductName", "div.Article-itemGroup p.Article-desc>a");
 
+        //WebScraper rktScraper = new WebScraper("https://fr.shopping.rakuten.com/s/4713883543514");
+        WebScraper rktScraper = new WebScraper("https://fr.shopping.rakuten.com/s/" + barcodeValue);
+        rktScraper.addScrapedItem("ProductName", "div[class^=navItem] h2.productName");
+
+        //WebScraper amzScraper = new WebScraper("https://www.amazon.fr/s?k=4713883543514");
+        WebScraper amzScraper = new WebScraper("https://www.amazon.fr/s?k=" + barcodeValue);
+        amzScraper.addScrapedItem("ProductName", "a[href*=keywords=4713883543514]>span");
+
+        //WebScraper ebScraper = new WebScraper("https://www.ebay.fr/sch/i.html?_nkw=3365000015711");
+        WebScraper ebScraper = new WebScraper("https://www.ebay.fr/sch/i.html?_nkw=" + barcodeValue);
+        ebScraper.addScrapedItem("ProductName", "h3.lvtitle>a");
+
+        //WebScraper mavScraper = new WebScraper("https://maison-a-vivre.com/recherche?search_query=3232870161711");
+        WebScraper mavScraper = new WebScraper("https://maison-a-vivre.com/recherche?search_query=" + barcodeValue);
+        mavScraper.addScrapedItem("Mark","div.content_price>div");
+        mavScraper.addScrapedItem("ProductName","div.content_price>a");
 
         ArrayList<WebScraper> scrapers = new ArrayList<>();
-        scrapers.add(barcodeDatabaseScraper);
-        scrapers.add(amazonScraper);
-
-
+        scrapers.add(mavScraper);
+        scrapers.add(bcdScraper);
+        scrapers.add(rktScraper);
+        scrapers.add(amzScraper);
+        scrapers.add(ebScraper);
+        scrapers.add(fnacScraper);
 
         scrapeWeb(scrapers);
 
@@ -126,8 +133,8 @@ public class ProductInfo extends AppCompatActivity {
     public void scrapeWeb(ArrayList<WebScraper> scrapers) {
 
         progressDialog = new ProgressDialog(ProductInfo.this);
-        progressDialog.setTitle("Connect for product information");
-        progressDialog.setMessage("Obtaining product information...");
+        progressDialog.setTitle("Chercher l'info du produit");
+        progressDialog.setMessage("Recherche " + scrapers.get(0).getUrl());
         progressDialog.setIndeterminate(false);
         progressDialog.show();
 
@@ -137,15 +144,16 @@ public class ProductInfo extends AppCompatActivity {
 
     class MyJavaScriptInterface {
         private Context ctx;
-        private ArrayList<WebScraper> scraper;
+        private ArrayList<WebScraper> scrapers;
         private int index = 0;
 
         MyJavaScriptInterface(Context ctx) {
             this.ctx = ctx;
         }
 
-        public void setWebScraper(ArrayList<WebScraper> scraper) {
-            this.scraper = scraper;
+        public void setWebScraper(ArrayList<WebScraper> scrapers) {
+            this.scrapers = scrapers;
+            this.index = 0;
         }
 
         @JavascriptInterface
@@ -155,20 +163,25 @@ public class ProductInfo extends AppCompatActivity {
                 @Override
                 public void run() {
                     //new AlertDialog.Builder(ctx).setTitle("HTML").setMessage(html).setPositiveButton(android.R.string.ok, null).setCancelable(false).create().show();
-                    if (index >= scraper.size()) {
+                    if (index >= scrapers.size()) {
                         progressDialog.dismiss();
                         return;
                     }
-                    scraper.get(index).scrape(html);
-                    if (scraper.get(index).getResult() != null) {
-                        productName.setText(scraper.get(index).getResult());
+
+                    WebScraper scraper = scrapers.get(index);
+                    scraper.run(html);
+                    String text = scraper.getText();
+
+                    if (text != null && !text.isEmpty()) {
+                        productName.setText(text);
                         progressDialog.dismiss();
                         index = 0;
                     } else {
                         ++index;
-                        if (index < scraper.size())
-                            myWebview.loadUrl(scraper.get(index).getUrl());
-                        else {
+                        if (index < scrapers.size()) {
+                            progressDialog.setMessage("Recherche " + scrapers.get(index).getUrl());
+                            myWebview.loadUrl(scrapers.get(index).getUrl());
+                        } else {
                             progressDialog.dismiss();
                             index = 0;
                         }
@@ -180,69 +193,6 @@ public class ProductInfo extends AppCompatActivity {
 
     }
 
-    public enum ScraperCommand {
-        CSS, TEXT, SIBLING
-    }
-
-    class WebScraperRequest {
-        public ScraperCommand command;
-        public String request;
-        public int index;
-
-        public WebScraperRequest(ScraperCommand command, String request, int index) {
-            this.command = command;
-            this.request = request;
-            this.index = index;
-        }
-    }
-
-    class WebScraper {
-        private ArrayList<WebScraperRequest> requests;
-        private String result;
-        private String url;
-
-        WebScraper(ArrayList<WebScraperRequest> requests, String url) {
-            this.requests = requests;
-            this.url = url;
-        }
-
-        public String getResult() {
-            return result;
-        }
-
-        public String getUrl() { return url; }
-
-        public void scrape(String html) {
-            Element elm = search(html);
-            result = (elm == null ? null : elm.text());
-        }
-
-        private Element search(String html){
-            Element elm = Jsoup.parse(html).body();
-            if (elm == null) return null;
-
-            for (WebScraperRequest request: requests) {
-                Elements elements = null;
-                switch (request.command) {
-                    case CSS:
-                        elements = elm.select(request.request);
-                        break;
-                    case TEXT:
-                        elements = elm.getElementsContainingOwnText(request.request);
-                        break;
-                    case SIBLING:
-                        elements = elm.siblingElements();
-                }
-                if (elements.isEmpty()) return null;
-                else {
-                    elm = elements.eq(request.index).first();
-                    if (elm == null) return null;
-                }
-            }
-            return elm;
-
-        }
-    }
 /*
     private class Content extends AsyncTask<Void, Void, Void> {
 
