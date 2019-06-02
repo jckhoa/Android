@@ -10,10 +10,12 @@ import org.jsoup.select.Elements;
 import java.util.HashMap;
 
 public class WebScraper {
+    String name;
     HashMap<String, WebScraperItem> items;
     String url;
 
-    public WebScraper(String url) {
+    public WebScraper(String name, String url) {
+        this.name = name;
         this.url = url;
         this.items = new HashMap<>();
     }
@@ -22,6 +24,7 @@ public class WebScraper {
         items.put(id, new WebScraperItem(command));
     }
 
+    public String getName() { return name; }
     public String getUrl() { return url;}
 
     public void run(String webContent) {
@@ -37,6 +40,8 @@ public class WebScraper {
     public String getText() {
         String result = "";
         for (HashMap.Entry<String, WebScraperItem> item: items.entrySet()) {
+            WebScraperItem val = item.getValue();
+            String itemText = item.getValue().getText();
             result += item.getValue().getText() + " ";
         }
         return result.trim();
@@ -44,8 +49,12 @@ public class WebScraper {
 
     public String getText(String id) {
         WebScraperItem item = items.get(id);
-        if (item != null) return item.getText();
-        else return "";
+        if (item != null) {
+            return item.getText();
+        }
+        else {
+            return "";
+        }
     }
 
     public Element getElement(String id) {
@@ -67,8 +76,12 @@ public class WebScraper {
         public String getCommand() { return command; }
         public Element getElement() { return element;}
         public String getText() {
-            if (element != null) return element.text();
-            else return "";
+            if (element != null) {
+                return element.text();
+            }
+            else {
+                return "";
+            }
         }
     }
 

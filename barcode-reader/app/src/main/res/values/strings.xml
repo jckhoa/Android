@@ -12,7 +12,7 @@
     <string name="barcode_success">Barcode read successfully</string>
     <string name="barcode_failure">No barcode captured</string>
     <string name="barcode_error">"Error reading barcode: %1$s"</string>
-    <string name="product_name">Product Name</string>
+    <string name="product_name">Nom du produit</string>
     <string name="confirm_product">Confirmer</string>
     <string name="rescan_product">Rescanner</string>
     <string name="cancel_product">Annuler</string>

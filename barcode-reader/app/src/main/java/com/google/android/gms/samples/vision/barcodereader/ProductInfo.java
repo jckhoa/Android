@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -74,36 +75,38 @@ public class ProductInfo extends AppCompatActivity {
 
 
         //WebScraper bcdScraper = new WebScraper("https://barcodesdatabase.org/barcode/9421021461303");
-        WebScraper bcdScraper = new WebScraper("https://barcodesdatabase.org/barcode/" + barcodeValue);
+        WebScraper bcdScraper = new WebScraper("barcodesdatabase", "https://barcodesdatabase.org/barcode/" + barcodeValue);
         bcdScraper.addScrapedItem("Owner", "table[class$=registration-table] tr:eq(1) td:eq(1)");
         bcdScraper.addScrapedItem("ProductName","table[class$=registration-table] tr:eq(2) td:eq(1)" );
 
-        //WebScraper  fnacScraper = new WebScraper("https://www.fnac.com/SearchResult/ResultList.aspx?Search=4713883543514");
-        WebScraper  fnacScraper = new WebScraper("https://www.fnac.com/SearchResult/ResultList.aspx?Search=" + barcodeValue);
+        //WebScraper  fnacScraper = new WebScraper("fnac", "https://www.fnac.com/SearchResult/ResultList.aspx?Search=4713883543514");
+        WebScraper  fnacScraper = new WebScraper("fnac", "https://www.fnac.com/SearchResult/ResultList.aspx?Search=" + barcodeValue);
         fnacScraper.addScrapedItem("ProductName", "div.Article-itemGroup p.Article-desc>a");
+        fnacScraper.addScrapedItem("ResultCounts", "span[class=Search-titleCount js-Search-titleCount]");
 
-        //WebScraper rktScraper = new WebScraper("https://fr.shopping.rakuten.com/s/4713883543514");
-        WebScraper rktScraper = new WebScraper("https://fr.shopping.rakuten.com/s/" + barcodeValue);
+        //WebScraper rktScraper = new WebScraper("rakuten", "https://fr.shopping.rakuten.com/s/4713883543514");
+        WebScraper rktScraper = new WebScraper("rakuten", "https://fr.shopping.rakuten.com/s/" + barcodeValue);
         rktScraper.addScrapedItem("ProductName", "div[class^=navItem] h2.productName");
 
-        //WebScraper amzScraper = new WebScraper("https://www.amazon.fr/s?k=4713883543514");
-        WebScraper amzScraper = new WebScraper("https://www.amazon.fr/s?k=" + barcodeValue);
+        //WebScraper amzScraper = new WebScraper("amazon", "https://www.amazon.fr/s?k=4713883543514");
+        WebScraper amzScraper = new WebScraper("amazon", "https://www.amazon.fr/s?k=" + barcodeValue);
         amzScraper.addScrapedItem("ProductName", "a[href*=keywords=4713883543514]>span");
 
-        //WebScraper ebScraper = new WebScraper("https://www.ebay.fr/sch/i.html?_nkw=3365000015711");
-        WebScraper ebScraper = new WebScraper("https://www.ebay.fr/sch/i.html?_nkw=" + barcodeValue);
+        //WebScraper ebScraper = new WebScraper("ebay", "https://www.ebay.fr/sch/i.html?_nkw=3365000015711");
+        WebScraper ebScraper = new WebScraper("ebay", "https://www.ebay.fr/sch/i.html?_nkw=" + barcodeValue);
         ebScraper.addScrapedItem("ProductName", "h3.lvtitle>a");
+        ebScraper.addScrapedItem("ResultCounts", "span[class=rcnt]");
 
-        //WebScraper mavScraper = new WebScraper("https://maison-a-vivre.com/recherche?search_query=3232870161711");
-        WebScraper mavScraper = new WebScraper("https://maison-a-vivre.com/recherche?search_query=" + barcodeValue);
+        //WebScraper mavScraper = new WebScraper("maisonavivre", "https://maison-a-vivre.com/recherche?search_query=3232870161711");
+        WebScraper mavScraper = new WebScraper("masionavivre", "https://maison-a-vivre.com/recherche?search_query=" + barcodeValue);
         mavScraper.addScrapedItem("Mark","div.content_price>div");
         mavScraper.addScrapedItem("ProductName","div.content_price>a");
 
         ArrayList<WebScraper> scrapers = new ArrayList<>();
         scrapers.add(mavScraper);
+        scrapers.add(amzScraper);
         scrapers.add(bcdScraper);
         scrapers.add(rktScraper);
-        scrapers.add(amzScraper);
         scrapers.add(ebScraper);
         scrapers.add(fnacScraper);
 
@@ -170,9 +173,33 @@ public class ProductInfo extends AppCompatActivity {
 
                     WebScraper scraper = scrapers.get(index);
                     scraper.run(html);
-                    String text = scraper.getText();
 
-                    if (text != null && !text.isEmpty()) {
+                    String scraperName = scraper.getName();
+
+                    String text = "Entrer un nom";
+                    if (scraperName == "ebay") {
+                        String countStr = scraper.getText("ResultCounts").trim();
+                        if (countStr != null && !countStr.isEmpty()) {
+                            Integer count = Integer.valueOf(countStr);
+                            if (count != 0) {
+                                text = scraper.getText("ProductName");
+                            }
+                        }
+                    } else if (scraperName == "fnac") {
+                        String countStr = scraper.getText("ResultCounts").trim();
+                        if (countStr != null && !countStr.isEmpty()) {
+                            Integer count = Integer.valueOf(countStr.substring(1, countStr.length() - 1));
+                            if (count != 0) {
+                                text = scraper.getText("ProductName");
+                            }
+                        }
+                    } else if (scraperName == "maisonavivre" || scraperName == "barcodesdatabase") {
+                        text = scraper.getText();
+                    } else {
+                        text = scraper.getText("ProductName");
+                    }
+
+                    if (!text.equals("Entrer un nom") && !text.isEmpty()) {
                         productName.setText(text);
                         progressDialog.dismiss();
                         index = 0;
@@ -182,6 +209,7 @@ public class ProductInfo extends AppCompatActivity {
                             progressDialog.setMessage("Recherche " + scrapers.get(index).getUrl());
                             myWebview.loadUrl(scrapers.get(index).getUrl());
                         } else {
+                            productName.setText(text);
                             progressDialog.dismiss();
                             index = 0;
                         }
