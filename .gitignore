@@ -6,3 +6,9 @@ barcode-reader/app/build/
 WebScraper/.idea/
 WebScraper/app/.gitignore
 WebScraper/.gitignore
+WebScraper/local.properties
+WebScraper/WebScraper.iml
+WebScraper/.gradle/5.1.1/gc.properties
+WebScraper/.gradle/5.1.1/executionHistory/executionHistory.lock
+WebScraper/.gradle/5.1.1/executionHistory/executionHistory.bin
+WebScraper/
