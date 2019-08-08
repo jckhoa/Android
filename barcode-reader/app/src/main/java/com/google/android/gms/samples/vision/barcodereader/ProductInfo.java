@@ -102,14 +102,20 @@ public class ProductInfo extends AppCompatActivity {
         mavScraper.addScrapedItem("Mark","div.content_price>div");
         mavScraper.addScrapedItem("ProductName","div.content_price>a");
 
+        //WebScraper bingScraper = new WebScraper("bing", "https://www.bing.com/search?q=6949639101631");
+        WebScraper bingScraper = new WebScraper("bing", "https://www.bing.com/search?q=" + barcodeValue);
+        bingScraper.addScrapedItem("ProductName", "div#b_content li:first-child a");
+
         ArrayList<WebScraper> scrapers = new ArrayList<>();
+        /*
         scrapers.add(mavScraper);
         scrapers.add(amzScraper);
         scrapers.add(bcdScraper);
         scrapers.add(rktScraper);
         scrapers.add(ebScraper);
         scrapers.add(fnacScraper);
-
+        */
+        scrapers.add(bingScraper);
         scrapeWeb(scrapers);
 
         //new Content().execute();

@@ -16,17 +16,27 @@
 
 package com.google.android.gms.samples.vision.barcodereader;
 
+import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Parcelable;
+import android.os.PersistableBundle;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintJob;
+import android.print.PrintManager;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
@@ -65,6 +75,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mytable = new MyTable();
         if (savedInstanceState == null)
             updateReportTable();
+        else {
+            updateReportTable();
+        }
     }
 
     @Override
@@ -86,6 +99,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
      *
      * @param v The view that was clicked.
      */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -99,6 +114,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 mytable.clearItems();
                 updateReportTable();
                 break;
+            case R.id.button_print:
+                PrintManager printManager = (PrintManager) this.getSystemService(Context.PRINT_SERVICE);
+                String jobName = "barcode_app" + " Liste Produits";
+
+                //Get a print adapter instance
+                PrintDocumentAdapter printAdapter = reportTable.createPrintDocumentAdapter(jobName);
+
+                //create a print job with name and adapter instance
+                PrintJob printJob = printManager.print(jobName, printAdapter, new PrintAttributes.Builder().build());
+
+                //save the job object for later status checking
+
+
         }
     }
 

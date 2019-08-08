@@ -18,4 +18,5 @@
     <string name="cancel_product">Annuler</string>
     <string name="main_instruction">Scanner: scanner un code barre &#10; Redemarrer: redemarrer</string>
     <string name="barcode">Code barre</string>
+    <string name="print_product">Imprimer</string>
 </resources>

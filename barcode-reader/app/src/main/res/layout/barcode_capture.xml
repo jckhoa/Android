@@ -8,41 +8,41 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-  <com.google.android.gms.samples.vision.barcodereader.ui.camera.CameraSourcePreview
-      android:id="@+id/preview"
-      android:layout_width="match_parent"
-      android:layout_height="500dp"
-      android:layout_alignParentTop="true"
-      android:layout_marginTop="60dp">
-
-    <com.google.android.gms.samples.vision.barcodereader.ui.camera.GraphicOverlay
-        android:id="@+id/graphicOverlay"
+    <com.google.android.gms.samples.vision.barcodereader.ui.camera.CameraSourcePreview
+        android:id="@+id/preview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="500dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="60dp">
 
-  </com.google.android.gms.samples.vision.barcodereader.ui.camera.CameraSourcePreview>
+        <com.google.android.gms.samples.vision.barcodereader.ui.camera.GraphicOverlay
+            android:id="@+id/graphicOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="50dp"
-      android:layout_alignParentBottom="true"
-      android:layout_marginBottom="30dp"
-      android:orientation="horizontal">
+    </com.google.android.gms.samples.vision.barcodereader.ui.camera.CameraSourcePreview>
 
-    <CheckBox
-        android:id="@+id/auto_focus"
-        android:layout_width="100dp"
-        android:layout_height="match_parent"
-        android:checked="true"
-        android:onClick="onCheckBoxClicked"
-        android:text="@string/auto_focus" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp"
+        android:orientation="horizontal">
 
-    <CheckBox
-        android:id="@+id/use_flash"
-        android:layout_width="100dp"
-        android:layout_height="match_parent"
-        android:checked="false"
-        android:text="@string/use_flash"
-        android:onClick="onCheckBoxClicked"/>
-  </LinearLayout>
+        <CheckBox
+            android:id="@+id/auto_focus"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:checked="true"
+            android:onClick="onCheckBoxClicked"
+            android:text="@string/auto_focus" />
+
+        <CheckBox
+            android:id="@+id/use_flash"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:checked="false"
+            android:text="@string/use_flash"
+            android:onClick="onCheckBoxClicked"/>
+    </LinearLayout>
 </RelativeLayout>
